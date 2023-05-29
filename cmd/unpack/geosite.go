@@ -3,13 +3,14 @@ package unpack
 import (
 	"bufio"
 	"fmt"
-	"github.com/spf13/cobra"
-	"github.com/urlesistiana/v2dat/v2data"
-	"go.uber.org/zap"
 	"io"
 	"os"
 	"path/filepath"
 	"strings"
+
+	"github.com/spf13/cobra"
+	"github.com/urlesistiana/v2dat/v2data"
+	"go.uber.org/zap"
 )
 
 type unpackArgs struct {
@@ -21,10 +22,13 @@ type unpackArgs struct {
 func newGeoSiteCmd() *cobra.Command {
 	args := new(unpackArgs)
 	c := &cobra.Command{
-		Use:   "geosite [-o output_dir] [-f tag[@attr]...]... geosite.dat",
+		Use:   "geosite [--nocn] [-o output_dir] [-f tag[@attr]...]... geosite.dat",
 		Args:  cobra.ExactArgs(1),
 		Short: "Unpack geosite file to text files.",
 		Run: func(cmd *cobra.Command, a []string) {
+			if NoCn {
+				println("No cn mode enabled. entry with cn attribute will not be extracted.")
+			}
 			args.file = a[0]
 			if err := unpackGeoSite(args); err != nil {
 				logger.Fatal("failed to unpack geosite", zap.Error(err))
@@ -34,6 +38,7 @@ func newGeoSiteCmd() *cobra.Command {
 	}
 	c.Flags().StringVarP(&args.outDir, "out", "o", "", "output dir")
 	c.Flags().StringArrayVarP(&args.filters, "filter", "f", nil, "unpack given tag and attrs")
+	c.Flags().BoolVar(&NoCn, "nocn", false, "not add cn attrs")
 	return c
 }
 
@@ -110,7 +115,7 @@ func convertV2DomainToText(domain []*v2data.Domain, w io.Writer) error {
 		case v2data.Domain_Regex:
 			prefix = "regexp:"
 		case v2data.Domain_Domain:
-			prefix = ""
+			prefix = "domain:"
 		case v2data.Domain_Full:
 			prefix = "full:"
 		default:

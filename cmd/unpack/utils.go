@@ -1,12 +1,14 @@
 package unpack
 
 import (
-	"github.com/urlesistiana/v2dat/mlog"
-	"github.com/urlesistiana/v2dat/v2data"
 	"path/filepath"
 	"strings"
+
+	"github.com/urlesistiana/v2dat/mlog"
+	"github.com/urlesistiana/v2dat/v2data"
 )
 
+var NoCn bool
 var logger = mlog.L()
 
 func splitAttrs(s string) (string, map[string]struct{}) {
@@ -25,7 +27,25 @@ func splitAttrs(s string) (string, map[string]struct{}) {
 // If no attr was given, filterAttrs returns in.
 func filterAttrs(in []*v2data.Domain, attrs map[string]struct{}) []*v2data.Domain {
 	if len(attrs) == 0 {
-		return in
+		if !NoCn {
+			return in
+		}
+		// 过滤CN
+		out := make([]*v2data.Domain, 0)
+		for _, d := range in {
+			isCN := false
+			for _, attr := range d.Attribute {
+				if attr.GetKey() == "cn" {
+					isCN = true
+					break
+				}
+			}
+			if isCN {
+				continue
+			}
+			out = append(out, d)
+		}
+		return out
 	}
 	out := make([]*v2data.Domain, 0)
 	for _, d := range in {

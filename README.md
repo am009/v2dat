@@ -1,3 +1,8 @@
+
+```
+.\v2dat.exe unpack geosite ..\dlc.dat -o out -f 
+```
+
 # v2dat
 
 A cli tool that can unpack v2ray data packages (also known as `geoip.dat` and `geosite.dat`) to text files.
